@@ -44,7 +44,7 @@ def get_filters() -> Tuple[str]:
         (str) month - name of the month to filter by, or "all" to apply no month filter
         (str) day - name of the day of week to filter by, or "all" to apply no day filter
     """
-    print("Hello! Let's explore some US bikeshare data!")
+    print("Hello! Let's explore some US bike share data!")
     # get user input for city (chicago, new york city, washington). HINT: Use a while loop to handle invalid inputs
     city = input(
         f"\nWhich City would you like to analyze?\
@@ -96,7 +96,7 @@ def load_data(city: str, month: str, day: str):
         df - Pandas DataFrame containing city data filtered by month and day
     """
     # Load the csv file associated with city inside a Pandas DataFrame
-    df: pd.DataFrame = pd.read_csv(f"{DATASETS_FOLDER}/{CITY_DATA[city]}")
+    df: pd.DataFrame = pd.read_csv(f"{DATASETS_FOLDER}/{CITY_DATA[city]}", index_col=0)
 
     # Convert the Start Time column to datetime
     df["Start Time"] = pd.to_datetime(df["Start Time"])
@@ -118,7 +118,7 @@ def load_data(city: str, month: str, day: str):
     return df
 
 
-def time_stats(df):
+def time_stats(df: pd.DataFrame) -> None:
     """Displays statistics on the most frequent times of travel."""
 
     print("\nCalculating The Most Frequent Times of Travel...\n")
@@ -145,19 +145,24 @@ def time_stats(df):
     print("-" * 40)
 
 
-def station_stats(df):
+def station_stats(df: pd.DataFrame) -> None:
     """Displays statistics on the most popular stations and trip."""
 
     print("\nCalculating The Most Popular Stations and Trip...\n")
     start_time = time.time()
 
-    # display most commonly used start station
+    # Retrieve and display most commonly used start station
+    print(f"The most common start station is {df["Start Station"].mode()[0]}")
 
-    # display most commonly used end station
+    # Retrieve and display most commonly used end station
+    print(f"The most common end station is {df["End Station"].mode()[0]}")
 
-    # display most frequent combination of start station and end station trip
+    # Retrieve and display most frequent combination of start station and end station trip
+    df_start_end_station = df.groupby(["Start Station", "End Station"]).size().sort_values(ascending=False)
+    most_common_trip: Tuple[str] = df_start_end_station.index[0]
+    print(f"The most common trip is {most_common_trip[0]} -> {most_common_trip[1]}")
 
-    print("\nThis took %s seconds." % (time.time() - start_time))
+    print(f"\nThis took {time.time() - start_time} seconds.")
     print("-" * 40)
 
 
@@ -171,12 +176,12 @@ def trip_duration_stats(df):
 
     # display mean travel time
 
-    print("\nThis took %s seconds." % (time.time() - start_time))
+    print(f"\nThis took {time.time() - start_time} seconds.")
     print("-" * 40)
 
 
 def user_stats(df):
-    """Displays statistics on bikeshare users."""
+    """Displays statistics on bike share users."""
 
     print("\nCalculating User Stats...\n")
     start_time = time.time()
@@ -187,7 +192,7 @@ def user_stats(df):
 
     # Display earliest, most recent, and most common year of birth
 
-    print("\nThis took %s seconds." % (time.time() - start_time))
+    print(f"\nThis took {time.time() - start_time} seconds.")
     print("-" * 40)
 
 
@@ -196,10 +201,11 @@ def main():
         city, month, day = get_filters()
         print(city, month, day)
         df = load_data(city, month, day)
+        print(df.groupby(["Start Station", "End Station"]).head())
         print(df.head())
 
         time_stats(df)
-        # station_stats(df)
+        station_stats(df)
         # trip_duration_stats(df)
         # user_stats(df)
 
