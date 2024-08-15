@@ -7,7 +7,6 @@ import time
 from typing import Dict, Tuple
 
 import pandas as pd
-import numpy as np
 
 DATASETS_FOLDER: str = "datasets"
 CITY_DATA: Dict[str, str] = {
@@ -48,13 +47,13 @@ def get_filters() -> Tuple[str]:
     print("Hello! Let's explore some US bike share data!")
     # get user input for city (chicago, new york city, washington). HINT: Use a while loop to handle invalid inputs
     city = input(
-        f"\nWhich City would you like to analyze?\
+        f"\nWhich City would you like to analyze?\n\
             Possible choices are {[city.capitalize() for city in CITY_DATA]}.\n"
     )
     while city.lower() not in CITY_DATA:
         print(f"{city} is not a valid choice.")
         city = input(
-            f"\nWhich City would you like to analyze?\
+            f"\nWhich City would you like to analyze?\n\
                 Possible choices are {[city.capitalize() for city in CITY_DATA]}.\n"
         )
     # get user input for month (all, january, february, ... , june)
@@ -65,19 +64,19 @@ def get_filters() -> Tuple[str]:
     while month.lower() not in VALID_MONTHS:
         print(f"{month} is not a valid choice.")
         month = input(
-            f"\nWhich Month would you like to analyze?\
+            f"\nWhich Month would you like to analyze?\n\
             Possible choices are {[month.capitalize() for month in VALID_MONTHS]}.\n"
         )
 
     # get user input for day of week (all, monday, tuesday, ... sunday)
     day = input(
-        f"\nWhich Day of the week would you like to analyze?\
+        f"\nWhich Day of the week would you like to analyze?\n\
             Possible choices are {[day.capitalize() for day in VALID_DAYS]}.\n"
     )
     while day.lower() not in VALID_DAYS:
         print(f"{day} is not a valid choice.")
         day = input(
-            f"\nWhich Day of the week would you like to analyze?\
+            f"\nWhich Day of the week would you like to analyze?\n\
             Possible choices are {[day.capitalize() for day in VALID_DAYS]}.\n"
         )
 
@@ -98,6 +97,9 @@ def load_data(city: str, month: str, day: str):
     """
     # Load the csv file associated with city inside a Pandas DataFrame
     df: pd.DataFrame = pd.read_csv(f"{DATASETS_FOLDER}/{CITY_DATA[city]}", index_col=0)
+
+    # Cast Birth Year from float to int
+    df["Birth Year"] = df["Birth Year"].astype("Int64")
 
     # Convert the Start Time column to datetime
     df["Start Time"] = pd.to_datetime(df["Start Time"])
@@ -196,23 +198,35 @@ def trip_duration_stats(df: pd.DataFrame) -> None:
     print("-" * 40)
 
 
-def user_stats(df):
+def user_stats(df: pd.DataFrame) -> None:
     """Displays statistics on bike share users."""
 
     print("\nCalculating User Stats...\n")
     start_time = time.time()
 
-    # Display counts of user types
+    # Retrieve and display counts of user types
+    df_user_type_count = df["User Type"].value_counts()
+    print("Here are the different user types and their count.")
+    for user_type, count in df_user_type_count.items():
+        print(f"\t{user_type}:\t{count}")
 
-    # Display counts of gender
+    # Retrieve and display counts of gender
+    df_gender_count = df["Gender"].value_counts()
+    print("Here are the different genders and their count.")
+    for gender, count in df_gender_count.items():
+        print(f"\t{gender}:\t{count}")
 
     # Display earliest, most recent, and most common year of birth
+    print(f"The earliest birth date is {df["Birth Year"].min()}.")
+    print(f"The most recent birth date is {df["Birth Year"].max()}.")
+    print(f"The most common birth date is {df["Birth Year"].mode()[0]}.")
 
     print(f"\nThis took {time.time() - start_time} seconds.")
     print("-" * 40)
 
 
 def main():
+    """Main function"""
     while True:
         city, month, day = get_filters()
         print(city, month, day)
@@ -222,7 +236,7 @@ def main():
         time_stats(df)
         station_stats(df)
         trip_duration_stats(df)
-        # user_stats(df)
+        user_stats(df)
 
         restart = input("\nWould you like to restart? Enter yes or no.\n")
         if restart.lower() != "yes":
