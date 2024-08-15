@@ -1,9 +1,15 @@
+"""
+This file is the Python application of the Explore Bike US project
+"""
+
 import time
-import pandas as pd
-import numpy as np
 from typing import Dict
 
-CITY_DATA = {
+import pandas as pd
+import numpy as np
+
+DATASETS_FOLDER: str = "datasets"
+CITY_DATA: Dict[str, str] = {
     "chicago": "chicago.csv",
     "new york city": "new_york_city.csv",
     "washington": "washington.csv",
@@ -89,7 +95,25 @@ def load_data(city, month, day):
     Returns:
         df - Pandas DataFrame containing city data filtered by month and day
     """
+    # Load the csv file associated with city inside a Pandas DataFrame
+    df = pd.read_csv(f"{DATASETS_FOLDER}/{CITY_DATA[city]}")
 
+    # Convert the Start Time column to datetime
+    df["Start Time"] = pd.to_datetime(df["Start Time"])
+
+    # Extract month and day of week from Start Time to create new columns
+    df["month"] = df["Start Time"].dt.month
+    df["day_of_week"] = df["Start Time"].dt.dayofweek
+
+    # Filter by month if applicable
+    if month != "all" and month in VALID_MONTHS:
+        # Filter the data frame by month to create the new data frame
+        df = df[df.month == VALID_MONTHS[month]]
+
+    # Filter by day of week if applicable
+    if day != "all" and day in VALID_DAYS:
+        # Filter by day of week to create the new data frame
+        df = df[df.day_of_week == VALID_DAYS[day]]
     return df
 
 
@@ -159,7 +183,8 @@ def main():
     while True:
         city, month, day = get_filters()
         print(city, month, day)
-        # df = load_data(city, month, day)
+        df = load_data(city, month, day)
+        print(df.head())
 
         # time_stats(df)
         # station_stats(df)
