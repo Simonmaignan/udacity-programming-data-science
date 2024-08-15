@@ -2,6 +2,7 @@
 This file is the Python application of the Explore Bike US project
 """
 
+import datetime as dt
 import time
 from typing import Dict, Tuple
 
@@ -166,15 +167,30 @@ def station_stats(df: pd.DataFrame) -> None:
     print("-" * 40)
 
 
-def trip_duration_stats(df):
+def trip_duration_stats(df: pd.DataFrame) -> None:
     """Displays statistics on the total and average trip duration."""
 
     print("\nCalculating Trip Duration...\n")
     start_time = time.time()
 
-    # display total travel time
+    # Retrieve and display total travel time
+    total_travel_time_seconds: int = int(df["Trip Duration"].sum())
+    total_travel_time_delta = dt.timedelta(seconds=total_travel_time_seconds)
+    total_years: int = total_travel_time_delta.days // 365
+    total_days: int = total_travel_time_delta.days % 365
+    total_hours: int = total_travel_time_delta.seconds // 3600
+    total_minutes: int = total_travel_time_delta.seconds // 60 % 60
+    total_seconds: int = total_travel_time_delta.seconds % 60
+    print(f"The total travel time is\n\
+        {total_years} years,\n\
+        {total_days} days,\n\
+        {total_hours} hours,\n\
+        {total_minutes} minutes and\n\
+        {total_seconds} seconds\n\
+        (or a total of {total_travel_time_seconds} seconds).")
 
-    # display mean travel time
+    # Retrieve and display mean travel time
+    print(f"The average travel time is {df["Trip Duration"].mean():.1f} seconds")
 
     print(f"\nThis took {time.time() - start_time} seconds.")
     print("-" * 40)
@@ -201,12 +217,11 @@ def main():
         city, month, day = get_filters()
         print(city, month, day)
         df = load_data(city, month, day)
-        print(df.groupby(["Start Station", "End Station"]).head())
         print(df.head())
 
         time_stats(df)
         station_stats(df)
-        # trip_duration_stats(df)
+        trip_duration_stats(df)
         # user_stats(df)
 
         restart = input("\nWould you like to restart? Enter yes or no.\n")
