@@ -3,7 +3,7 @@ This file is the Python application of the Explore Bike US project
 """
 
 import time
-from typing import Dict
+from typing import Dict, Tuple
 
 import pandas as pd
 import numpy as np
@@ -35,7 +35,7 @@ VALID_DAYS: Dict[str, int] = {
 }
 
 
-def get_filters():
+def get_filters() -> Tuple[str]:
     """
     Asks user to specify a city, month, and day to analyze.
 
@@ -84,7 +84,7 @@ def get_filters():
     return city, month, day
 
 
-def load_data(city, month, day):
+def load_data(city: str, month: str, day: str):
     """
     Loads data for the specified city and filters by month and day if applicable.
 
@@ -96,7 +96,7 @@ def load_data(city, month, day):
         df - Pandas DataFrame containing city data filtered by month and day
     """
     # Load the csv file associated with city inside a Pandas DataFrame
-    df = pd.read_csv(f"{DATASETS_FOLDER}/{CITY_DATA[city]}")
+    df: pd.DataFrame = pd.read_csv(f"{DATASETS_FOLDER}/{CITY_DATA[city]}")
 
     # Convert the Start Time column to datetime
     df["Start Time"] = pd.to_datetime(df["Start Time"])
@@ -104,6 +104,7 @@ def load_data(city, month, day):
     # Extract month and day of week from Start Time to create new columns
     df["month"] = df["Start Time"].dt.month
     df["day_of_week"] = df["Start Time"].dt.dayofweek
+    df["hour"] = df["Start Time"].dt.hour
 
     # Filter by month if applicable
     if month != "all" and month in VALID_MONTHS:
@@ -123,13 +124,24 @@ def time_stats(df):
     print("\nCalculating The Most Frequent Times of Travel...\n")
     start_time = time.time()
 
-    # display the most common month
+    # Retrieve and display the most common month
+    month: int = df.month.mode()[0]
+    month_str: str = list(VALID_MONTHS.keys())[
+        list(VALID_MONTHS.values()).index(month)
+    ].capitalize()
+    print(f"The most common month is {month_str}")
 
-    # display the most common day of week
+    # Retrieve and display the most common day of week
+    day: int = df.day_of_week.mode()[0]
+    day_str: str = list(VALID_DAYS.keys())[
+        list(VALID_DAYS.values()).index(day)
+    ].capitalize()
+    print(f"The most common day of the week is {day_str}")
 
-    # display the most common start hour
+    # Retrieve and display the most common start hour
+    print(f"The most common start hour is {df.hour.mode()[0]}")
 
-    print("\nThis took %s seconds." % (time.time() - start_time))
+    print(f"\nThis took {time.time() - start_time} seconds.")
     print("-" * 40)
 
 
@@ -186,7 +198,7 @@ def main():
         df = load_data(city, month, day)
         print(df.head())
 
-        # time_stats(df)
+        time_stats(df)
         # station_stats(df)
         # trip_duration_stats(df)
         # user_stats(df)
