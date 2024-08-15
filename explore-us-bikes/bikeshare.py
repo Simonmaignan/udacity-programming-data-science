@@ -82,7 +82,7 @@ def get_filters() -> Tuple[str]:
         )
 
     print("-" * 40)
-    return city, month, day
+    return city.lower(), month.lower(), day.lower()
 
 
 def load_data(city: str, month: str, day: str) -> pd.DataFrame:
@@ -96,11 +96,18 @@ def load_data(city: str, month: str, day: str) -> pd.DataFrame:
     Returns:
         df - Pandas DataFrame containing city data filtered by month and day
     """
+
+    print("\nLoading the chosen data frame with the chosen filters...\n")
+    start_time = time.time()
+
     # Load the csv file associated with city inside a Pandas DataFrame
-    df: pd.DataFrame = pd.read_csv(f"{DATASETS_FOLDER}/{CITY_DATA[city]}", index_col=0)
+    df: pd.DataFrame = pd.read_csv(
+        f"{DATASETS_FOLDER}/{CITY_DATA[city]}", index_col=0
+    )
 
     # Cast Birth Year from float to int
-    df["Birth Year"] = df["Birth Year"].astype("Int64")
+    if "Birth Year" in df:
+        df["Birth Year"] = df["Birth Year"].astype("Int64")
 
     # Convert the Start Time column to datetime
     df["Start Time"] = pd.to_datetime(df["Start Time"])
@@ -119,6 +126,10 @@ def load_data(city: str, month: str, day: str) -> pd.DataFrame:
     if day != "all" and day in VALID_DAYS:
         # Filter by day of week to create the new data frame
         df = df[df.day_of_week == VALID_DAYS[day]]
+
+    print(f"The loaded data frame contains {len(df)} records.")
+    print(f"\nThis took {time.time() - start_time} seconds.")
+    print("-" * 40)
     return df
 
 
@@ -156,15 +167,21 @@ def station_stats(df: pd.DataFrame) -> None:
     start_time = time.time()
 
     # Retrieve and display most commonly used start station
-    print(f"The most common start station is {df["Start Station"].mode()[0]}")
+    print(f"The most common start station is {df['Start Station'].mode()[0]}")
 
     # Retrieve and display most commonly used end station
-    print(f"The most common end station is {df["End Station"].mode()[0]}")
+    print(f"The most common end station is {df['End Station'].mode()[0]}")
 
     # Retrieve and display most frequent combination of start station and end station trip
-    df_start_end_station = df.groupby(["Start Station", "End Station"]).size().sort_values(ascending=False)
+    df_start_end_station = (
+        df.groupby(["Start Station", "End Station"])
+        .size()
+        .sort_values(ascending=False)
+    )
     most_common_trip: Tuple[str] = df_start_end_station.index[0]
-    print(f"The most common trip is {most_common_trip[0]} -> {most_common_trip[1]}")
+    print(
+        f"The most common trip is {most_common_trip[0]} -> {most_common_trip[1]}"
+    )
 
     print(f"\nThis took {time.time() - start_time} seconds.")
     print("-" * 40)
@@ -184,16 +201,20 @@ def trip_duration_stats(df: pd.DataFrame) -> None:
     total_hours: int = total_travel_time_delta.seconds // 3600
     total_minutes: int = total_travel_time_delta.seconds // 60 % 60
     total_seconds: int = total_travel_time_delta.seconds % 60
-    print(f"The total travel time is\n\
+    print(
+        f"The total travel time is\n\
         {total_years} years,\n\
         {total_days} days,\n\
         {total_hours} hours,\n\
         {total_minutes} minutes and\n\
         {total_seconds} seconds\n\
-        (or a total of {total_travel_time_seconds} seconds).")
+        (or a total of {total_travel_time_seconds} seconds)."
+    )
 
     # Retrieve and display mean travel time
-    print(f"The average travel time is {df["Trip Duration"].mean():.1f} seconds")
+    print(
+        f"The average travel time is {df['Trip Duration'].mean():.1f} seconds"
+    )
 
     print(f"\nThis took {time.time() - start_time} seconds.")
     print("-" * 40)
@@ -212,15 +233,25 @@ def user_stats(df: pd.DataFrame) -> None:
         print(f"\t{user_type}:\t{count}")
 
     # Retrieve and display counts of gender
-    df_gender_count = df["Gender"].value_counts()
-    print("Here are the different genders and their count.")
-    for gender, count in df_gender_count.items():
-        print(f"\t{gender}:\t{count}")
+    if "Gender" in df:
+        df_gender_count = df["Gender"].value_counts()
+        print("Here are the different genders and their count.")
+        for gender, count in df_gender_count.items():
+            print(f"\t{gender}:\t{count}")
+    else:
+        print(
+            "The data frame does not contain any information about the gender."
+        )
 
     # Display earliest, most recent, and most common year of birth
-    print(f"The earliest birth date is {df["Birth Year"].min()}.")
-    print(f"The most recent birth date is {df["Birth Year"].max()}.")
-    print(f"The most common birth date is {df["Birth Year"].mode()[0]}.")
+    if "Birth Year" in df:
+        print(f"The earliest birth date is {df['Birth Year'].min()}.")
+        print(f"The most recent birth date is {df['Birth Year'].max()}.")
+        print(f"The most common birth date is {df['Birth Year'].mode()[0]}.")
+    else:
+        print(
+            "The data frame does not contain any information about the birth year."
+        )
 
     print(f"\nThis took {time.time() - start_time} seconds.")
     print("-" * 40)
@@ -228,15 +259,22 @@ def user_stats(df: pd.DataFrame) -> None:
 
 def display_records(df: pd.DataFrame) -> None:
     """Displays the data frame (df) records by batch of 5 if required by the user."""
-    display: str = input("\nWould you like to display the 5 fist records? Enter yes or no.\n")
+    display: str = input(
+        "\nWould you like to display the 5 fist records? Enter yes or no.\n"
+    )
     step: int = 5
     current_record_idx: int = 0
     while display == "yes":
         for _ in range(step):
+            if current_record_idx >= len(df):
+                print("We are at the end of the data frame. Aborting.")
+                break
             print(f"\nRecord at index {current_record_idx}:\n")
             print(df.iloc[current_record_idx])
             current_record_idx += 1
-        display: str = input("\nWould you like to display the 5 next records? Enter yes or no.\n")
+        display: str = input(
+            "\nWould you like to display the 5 next records? Enter yes or no.\n"
+        )
 
 
 def main() -> None:
