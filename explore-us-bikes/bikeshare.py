@@ -45,7 +45,8 @@ def get_filters() -> Tuple[str]:
         (str) day - name of the day of week to filter by, or "all" to apply no day filter
     """
     print("Hello! Let's explore some US bike share data!")
-    # get user input for city (chicago, new york city, washington). HINT: Use a while loop to handle invalid inputs
+    # Get user input for city (chicago, new york city, washington).
+    # HINT: Use a while loop to handle invalid inputs
     city = input(
         f"\nWhich City would you like to analyze?\n\
             Possible choices are {[city.capitalize() for city in CITY_DATA]}.\n"
@@ -56,9 +57,9 @@ def get_filters() -> Tuple[str]:
             f"\nWhich City would you like to analyze?\n\
                 Possible choices are {[city.capitalize() for city in CITY_DATA]}.\n"
         )
-    # get user input for month (all, january, february, ... , june)
+    # Get user input for month (all, january, february, ... , june)
     month = input(
-        f"\nWhich Month would you like to analyze?\
+        f"\nWhich Month would you like to analyze?\n\
             Possible choices are {[month.capitalize() for month in VALID_MONTHS]}.\n"
     )
     while month.lower() not in VALID_MONTHS:
@@ -68,7 +69,7 @@ def get_filters() -> Tuple[str]:
             Possible choices are {[month.capitalize() for month in VALID_MONTHS]}.\n"
         )
 
-    # get user input for day of week (all, monday, tuesday, ... sunday)
+    # Get user input for day of week (all, monday, tuesday, ... sunday)
     day = input(
         f"\nWhich Day of the week would you like to analyze?\n\
             Possible choices are {[day.capitalize() for day in VALID_DAYS]}.\n"
@@ -84,7 +85,7 @@ def get_filters() -> Tuple[str]:
     return city, month, day
 
 
-def load_data(city: str, month: str, day: str):
+def load_data(city: str, month: str, day: str) -> pd.DataFrame:
     """
     Loads data for the specified city and filters by month and day if applicable.
 
@@ -225,18 +226,30 @@ def user_stats(df: pd.DataFrame) -> None:
     print("-" * 40)
 
 
-def main():
+def display_records(df: pd.DataFrame) -> None:
+    """Displays the data frame (df) records by batch of 5 if required by the user."""
+    display: str = input("\nWould you like to display the 5 fist records? Enter yes or no.\n")
+    step: int = 5
+    current_record_idx: int = 0
+    while display == "yes":
+        for _ in range(step):
+            print(f"\nRecord at index {current_record_idx}:\n")
+            print(df.iloc[current_record_idx])
+            current_record_idx += 1
+        display: str = input("\nWould you like to display the 5 next records? Enter yes or no.\n")
+
+
+def main() -> None:
     """Main function"""
     while True:
         city, month, day = get_filters()
-        print(city, month, day)
         df = load_data(city, month, day)
-        print(df.head())
 
         time_stats(df)
         station_stats(df)
         trip_duration_stats(df)
         user_stats(df)
+        display_records(df)
 
         restart = input("\nWould you like to restart? Enter yes or no.\n")
         if restart.lower() != "yes":
